@@ -1,0 +1,24 @@
+# Environment variables
+.env
+.env.local
+
+# AWS credentials
+*.csv
+credentials
+config
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Node
+node_modules/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
