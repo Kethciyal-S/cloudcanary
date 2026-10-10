@@ -35,4 +35,4 @@ All credentials are stored in `.env` (gitignored). Never commit real keys.
 
 ## 📄 License
 
-Educational project — Level 5 Cybersecurity Capstone
+Educational project 
