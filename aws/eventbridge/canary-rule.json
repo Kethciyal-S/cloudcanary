@@ -1,0 +1,16 @@
+{
+  "Name": "cloudcanary-honeytoken-trigger",
+  "Description": "Trigger Lambda when canary honeytoken users make API calls",
+  "EventPattern": {
+    "source": ["aws.signin", "aws.iam", "aws.s3", "aws.ec2"],
+    "detail-type": ["AWS API Call via CloudTrail"],
+    "detail": {
+      "userIdentity": {
+        "userName": [
+          {"prefix": "canary-"}
+        ]
+      }
+    }
+  },
+  "State": "ENABLED"
+}

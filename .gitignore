@@ -22,3 +22,15 @@ node_modules/
 # OS
 .DS_Store
 Thumbs.db
+
+# Backend secrets
+backend/.env
+backend/venv/
+venv/
+
+# Tokens (never push)
+tokens/
+
+# API keys
+*.key
+**/.env
