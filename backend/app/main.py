@@ -1,15 +1,23 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
+from contextlib import asynccontextmanager
 
 from app.routes import webhook, events
+from app.database import init_db
 
 load_dotenv()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    init_db()
+    yield
 
 app = FastAPI(
     title="CloudCanary API",
     description="Decoy Cloud Credential Trap & Real-Time Breach Alert System",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 app.add_middleware(
@@ -29,13 +37,7 @@ async def root():
         "name": "CloudCanary API",
         "version": "1.0.0",
         "status": "running",
-        "endpoints": [
-            "POST /webhook/cloudtrail",
-            "GET /events",
-            "GET /events/stats",
-            "GET /events/{event_id}",
-            "GET /docs"
-        ]
+        "database": "postgresql (supabase)"
     }
 
 @app.get("/health")
