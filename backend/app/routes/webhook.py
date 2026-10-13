@@ -7,8 +7,9 @@ import json
 
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.models import Event, Attacker
+from app.models import Event, Attacker, Alert
 from app.services.enrichment import enrich_ip
+from app.services.telegram import send_telegram_alert
 
 router = APIRouter(prefix="/webhook", tags=["webhook"])
 
@@ -35,19 +36,12 @@ async def receive_cloudtrail_event(event: CloudTrailEvent, db: Session = Depends
     event_id = str(uuid4())
     
     db_event = Event(
-        event_id=event_id,
-        token_id=event.token_id,
-        event_name=event.event_name,
-        source_ip=event.source_ip,
-        user_agent=event.user_agent,
-        aws_region=event.aws_region,
-        account_id=event.account_id,
-        threat_level=threat_level,
-        abuse_score=abuse_score,
-        geo_data=json.dumps(geo),
-        abuse_data=json.dumps(abuse),
-        event_time=datetime.utcnow(),
-        received_at=datetime.utcnow()
+        event_id=event_id, token_id=event.token_id, event_name=event.event_name,
+        source_ip=event.source_ip, user_agent=event.user_agent,
+        aws_region=event.aws_region, account_id=event.account_id,
+        threat_level=threat_level, abuse_score=abuse_score,
+        geo_data=json.dumps(geo), abuse_data=json.dumps(abuse),
+        event_time=datetime.utcnow(), received_at=datetime.utcnow()
     )
     db.add(db_event)
     
@@ -57,16 +51,34 @@ async def receive_cloudtrail_event(event: CloudTrailEvent, db: Session = Depends
         attacker.last_seen = datetime.utcnow()
     else:
         attacker = Attacker(
-            ip=event.source_ip,
-            country=geo.get("country"),
-            city=geo.get("city"),
-            org=geo.get("org"),
-            abuse_score=abuse_score,
-            total_triggers=1
+            ip=event.source_ip, country=geo.get("country"),
+            city=geo.get("city"), org=geo.get("org"),
+            abuse_score=abuse_score, total_triggers=1
         )
         db.add(attacker)
     
-    db.commit()
-    print(f"Event stored in DB: {event_id}")
+    # Send Telegram alert
+    alert_payload = {
+        "token_id": event.token_id, "event_name": event.event_name,
+        "source_ip": event.source_ip,
+        "event_time": event.event_time or datetime.utcnow().isoformat(),
+        "threat_level": threat_level, "geo": geo, "abuse": abuse
+    }
+    telegram_result = await send_telegram_alert(alert_payload)
+    print(f"Telegram: {telegram_result}")
     
-    return {"status": "received", "event_id": event_id, "threat_level": threat_level}
+    alert = Alert(
+        event_id=event_id, channel="telegram",
+        status=telegram_result.get("status", "unknown"),
+        message=json.dumps(alert_payload)
+    )
+    db.add(alert)
+    
+    db.commit()
+    print(f"Event stored: {event_id}")
+    
+    return {
+        "status": "received", "event_id": event_id,
+        "threat_level": threat_level,
+        "telegram": telegram_result.get("status")
+    }
