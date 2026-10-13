@@ -39,19 +39,19 @@ CloudCanary plants fake AWS credentials (canary tokens) in public places. When a
 
 ## 🏗️ How It Works?
 Attacker uses fake AWS key
-↓
+->
 AWS CloudTrail logs the API call
-↓
+->
 EventBridge rule detects "canary-*" user
-↓
+->
 Lambda function fires
-↓
+->
 Sends event to backend API (Render)
-↓
+->
 Enriches with IPinfo + AbuseIPDB
-↓
+->
 Stores in Supabase PostgreSQL
-↓
+->
 Live Dashboard (Vercel) + Telegram Alert
 
 ## 📄 License
