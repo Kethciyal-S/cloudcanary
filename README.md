@@ -31,8 +31,30 @@ CloudCanary plants fake AWS credentials (canary tokens) in public places. When a
 
 ## 🔐 Security Note
 
-All credentials are stored in `.env` (gitignored). Never commit real keys.
+## 🌐 Live Links
+
+- **Frontend Dashboard:** https://cloudcanary.vercel.app
+- **Backend API:** https://cloudcanary.onrender.com
+- **API Docs (Swagger):** https://cloudcanary.onrender.com/docs]
+
+## 🏗️ How It Works?
+Attacker uses fake AWS key
+↓
+AWS CloudTrail logs the API call
+↓
+EventBridge rule detects "canary-*" user
+↓
+Lambda function fires
+↓
+Sends event to backend API (Render)
+↓
+Enriches with IPinfo + AbuseIPDB
+↓
+Stores in Supabase PostgreSQL
+↓
+Live Dashboard (Vercel) + Telegram Alert
 
 ## 📄 License
+         for educational purpose
 
 Educational project 
